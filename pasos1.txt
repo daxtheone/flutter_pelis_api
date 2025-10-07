@@ -1,0 +1,369 @@
+1 ) en main.dart reiniciamos la clase principal
+
+        import 'package:flutter/material.dart';
+
+        void main() {
+          runApp(const MyApp());
+        }
+
+        class MyApp extends StatelessWidget {
+          const MyApp({super.key});
+
+          @override
+          Widget build(BuildContext context) {
+            return MaterialApp(
+              title: 'Flutter Demo',
+              home: Scaffold(
+                appBar: AppBar(
+                  title: const Text('Material APP'),
+                ),
+                body: const Center(
+                  child: Text('Hello WORD'),
+                ),
+              )
+            );
+          }
+        }
+
+
+2) creamos la carpeta lib/config/theme => app_theme.dart
+
+import 'package:flutter/material.dart';
+
+const colorList = <Color>[
+  Colors.blue,
+  Colors.teal,
+  Colors.green,
+  Colors.red,
+  Colors.deepPurpleAccent,
+  Colors.orange,
+  Colors.pink
+];
+class AppTheme {
+  final int selectedColor;
+
+  AppTheme({this.selectedColor = 0}):
+        assert(selectedColor >= 0, 'El color debe ser mayor a 0'),
+        assert(selectedColor <= 6, 'El color debe ser Menor o igual a ${colorList.length}')
+  ;
+  ThemeData getTheme()=> ThemeData(
+    useMaterial3: true,
+    colorSchemeSeed: colorList[
+      selectedColor
+    ],
+    appBarTheme: AppBarTheme(
+      centerTitle: false
+    )
+  );
+
+}
+
+
+
+
+3) En main.dart agregamos
+
+         debugShowCheckedModeBanner: false,
+         theme: AppTheme().getTheme(),
+
+4) en lib/config/helpers creamos la carpeta y
+
+    intl: ^0.20.2
+
+    human_formats.dart
+
+        import 'package:intl/intl.dart';
+
+        class HumanFormats {
+          static String humanReadbleNumber(double number){
+            final formatterNumber = NumberFormat.compactCurrency(
+              decimalDigits: 0,
+              symbol: '',
+            ).format(number);
+            return formatterNumber;
+          }
+
+
+
+5) creacion del menú
+    5.1 ) Creamos la ruta lib/presentation/screens/menu_app.dart stl
+    5.2 ) Creamos la ruta lib/config/menu/menu_items.dart
+
+        con un arreglo de opciones de menu con sus rutas
+
+
+        import 'package:flutter/material.dart';
+
+
+        class MenuItems {
+          final String title;
+          final String subTitle;
+          final String link;
+          final IconData icon;
+
+          const MenuItems({
+            required this.title,
+            required this.subTitle,
+            required this.link,
+            required this.icon
+          });
+
+
+
+        }
+
+        const appMenuItems = <MenuItems>[
+          MenuItems(
+            title: 'Botones',
+            subTitle: 'Varios Botones en flutter',
+            link: '/buttons',
+            icon: Icons.smart_button_outlined
+          ),
+          MenuItems(
+              title: 'Tarjetas',
+              subTitle: 'Un contenedor estilizado',
+              link: '/cards',
+              icon: Icons.credit_card
+          )
+        ];
+
+
+
+
+
+    5.3 ) creamos un widget interno para luego crear un ListView.builder
+
+
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:widgets_app/config/menu/menu_items.dart';
+
+class HomeScreen extends StatelessWidget {
+  static const String name = 'home_screen';
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Flutter + Material 3')),
+      body: _HomeView(),
+    );
+  }
+}
+
+class _HomeView extends StatelessWidget {
+  const _HomeView();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      // physics: BouncingScrollPhysics(),
+      itemCount: appMenuItems.length,
+      itemBuilder: (context, index) {
+        final menuItem = appMenuItems[index];
+        return _CustomListTile(menuItem: menuItem);
+      },
+    );
+  }
+}
+
+class _CustomListTile extends StatelessWidget {
+  const _CustomListTile({
+    required this.menuItem,
+  });
+
+  final MenuItems menuItem;
+
+  @override
+  Widget build(BuildContext context) {
+    final  colors = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Icon(menuItem.icon, color: colors.primary,),
+      trailing: Icon(Icons.arrow_back_ios_rounded, color: colors.primary),
+      title: Text(menuItem.title),
+      subtitle: Text(menuItem.subTitle),
+      onTap: (){
+        /*
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context){
+            return ButtonsScreen();
+          })
+        );
+        */
+         context.push(menuItem.link);
+      },
+    );
+  }
+}
+
+5) Creacion del sistema de rutas
+    5.1 ) Creamos el archivo lib/presentation/screens/screens.dart
+    export 'package:widgets_app/presentation/screens/buttons/buttons_screen.dart';
+    export 'package:widgets_app/presentation/screens/cards/cards_screen.dart';
+    export 'package:widgets_app/presentation/screens/home/home_screen.dart';
+
+
+
+    5.2 ) Creamos la carpeta lib/config/router => app_router.dart
+
+
+        import 'package:go_router/go_router.dart';
+        import '../../presentation/screens/screens.dart';
+
+        final appRouter = GoRouter(routes: <RouteBase>[
+          GoRoute(
+            routes: <RouteBase>[
+              GoRoute(
+                  path: '/',
+                builder: (context, sate) => HomeScreen()
+              ),
+              GoRoute(
+                  path: '/buttons',
+                  builder: (context, sate) => ButtonsScreen()
+              ),
+              GoRoute(
+                  path: '/cards',
+                  builder: (context, sate) => CardsScreen()
+              ),
+            ],
+            path: '/',
+            builder: (context, state) {
+              return HomeScreen();
+            }
+          )
+        ]);
+
+
+
+    5.3 ) Actualizamos el main.dart
+
+        return MaterialApp.router(
+          routerConfig: appRouter,
+          title: 'Flutter Demo',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme(selectedColor: 0).getTheme(),
+
+        );
+
+
+    5.4 ) lo usamos en el lugar del menu deseado, ejemplo home_screen
+
+            context.push(menuItem.link);
+
+
+
+6 ) vamos a crear nuestro acceso a assets en la raiz
+    Luego nos vamos a pubspec.yaml
+assets:
+  - assets/images/
+
+
+7 ) animatedDo
+ En pubspec agregar luego de dependences
+
+   animate_do: ^4.2.0
+
+
+
+
+8 ) crearemos nuestro side_menu dentro de la carpeta widgets
+
+
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:widgets_app/config/menu/menu_items.dart';
+
+class SideMenu extends StatefulWidget {
+
+  final GlobalKey<ScaffoldState> scaffoldKey;
+  const SideMenu({super.key, required this.scaffoldKey});
+
+  @override
+  State<SideMenu> createState() => _SideMenuState();
+}
+
+class _SideMenuState extends State<SideMenu> {
+  int navDrawerIndex = 1;
+
+  @override
+  Widget build(BuildContext context) {
+    // El hasNotch es el espacio arriba que tienen algunos dispositivos android
+    final hasNotch = MediaQuery.of(context).viewPadding.top > 35;
+
+    return NavigationDrawer(
+      selectedIndex: navDrawerIndex,
+      onDestinationSelected: (value) {
+        setState(() {
+          navDrawerIndex = value;
+        });
+
+        final menuItem = appMenuItems[value];
+        context.push(menuItem.link);
+        widget.scaffoldKey.currentState?.closeDrawer();
+
+      },
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(28, hasNotch ? 0 : 20, 16, 10),
+          child: Text('Main Menú'),
+        ),
+        ...appMenuItems.sublist(0,3).map(
+          (item) => NavigationDrawerDestination(
+            icon: Icon(item.icon),
+            label: Text(item.title),
+          ),
+        ),
+        Padding(padding: const EdgeInsets.fromLTRB(28, 16, 28, 10), child: Divider()),
+        Padding(
+          padding: EdgeInsets.fromLTRB(28, 10, 16, 10),
+          child: Text('More Options'),
+        ),
+        ...appMenuItems.sublist(3).map(
+              (item) => NavigationDrawerDestination(
+            icon: Icon(item.icon),
+            label: Text(item.title),
+          ),
+        ),
+        /*
+        NavigationDrawerDestination(
+          icon: Icon(Icons.add_a_photo_outlined),
+          label: Text('Homse SCreen'),
+        ),
+        NavigationDrawerDestination(
+          icon: Icon(Icons.add),
+          label: Text('Otra Pantalla'),
+        ),*/
+      ],
+    );
+  }
+}
+
+
+
+
+9 ) vamos por riverpod para gestionar estado
+
+    https://riverpod.dev/es/docs/introduction/getting_started
+        agregamos en neustro pubspec
+        flutter_riverpod: ^3.0.0-dev.17
+
+    luego en main.dart
+
+      runApp(const ProviderScope(child: MyApp()));
+
+
+
+
+* TIPS ctrl + / descomenta en el pubspec.yaml
+* https://pub.dev/
+* para hacer un paso a paso muy facilmente
+    PageView(
+      physics: const BouncingScrollPhysics(),
+      children: [
+        Container(color: Colors.red),
+        Container(color: Colors.blue),
+      ],
+    )
+
+
+

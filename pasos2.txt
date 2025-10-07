@@ -1,0 +1,178 @@
+
+Paso 1 )
+
+    En main.dart
+    agregamos la propiedad debugShowCheckedModeBanner en false para quitar el banner de modo debug.
+
+
+Paso 2)
+
+    Agregamos los directorios config/theme  y config/router
+    Luego el archivo config/theme/app_theme.dart y config/router/app_router.dart
+
+ Paso 3)  en app_theme.dart
+
+        3.1)
+        import 'package:flutter/material.dart';
+        class AppTheme {
+
+          ThemeData getTheme() => ThemeData(
+            useMaterial3: true,
+            colorSchemeSeed: const Color(0xff2862F5)
+          );
+        }
+
+
+        3.2) Agrego la propiedad theme en mi main.dart
+
+        theme: AppTheme().getTheme(),
+
+  Paso 4) instalamos el router en pubspec.yaml (https://pub.dev/packages/go_router/install)
+
+      dependencies:
+        flutter:
+          sdk: flutter
+        go_router: ^16.2.4
+
+ Paso 5) Creamos el directorio /lib/presentation/screens
+
+ Paso 6) creamos el directorio a trabajar para el ejemplo usamos /lib/presentation/screens/movies/home_screen.dart
+    stl = para crear nuestro stallesswidgets
+
+
+    import 'package:flutter/material.dart';
+
+    class HomeScreen extends StatelessWidget {
+      static const name = 'home-screen';
+
+      const HomeScreen({super.key});
+
+      @override
+      Widget build(BuildContext context) {
+        return Scaffold(
+          body: Placeholder(),
+        );
+      }
+    }
+
+
+Paso 7 ) como sabemos que vamos a tener muchas pantallas, creamos  /screens/screens.dart para tener asi un solo archivo con todas las pantallas necesarias
+
+        export 'movies/home_screen.dart';
+
+
+
+Paso 8 )  Configuremos nuestro routers de navegación (ojo es importante validar que estamos importando desde nuestra pantalla screens.dart)
+
+    8.1) en app_router.dart
+
+        import 'package:go_router/go_router.dart';
+        import 'package:pelis_api/presentation/screens/screens.dart';
+
+        final appRouter = GoRouter(
+          initialLocation: '/',
+          routes: [GoRoute(path: '/', name: HomeScreen.name, builder: (context,state)=> HomeScreen())],
+        );
+
+    8.2 ) en main.dart configuramos el router
+
+        return MaterialApp.router(
+          routerConfig: appRouter,
+          title: 'Flutter Demo',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme().getTheme(),
+
+        );
+
+Paso 9) Creamos el directorio /lib/domain
+                /lib/domain/datasources
+                /lib/domain/entities
+                /lib/domain/repositories
+
+
+Paso 10) Creamos nuestra primera entidad de ejemplo /lib/domain/entities/movie.dart
+
+    class Movie {
+      final bool adult;
+      final String backdropPath;
+      final List<String> genreIds;
+      final int id;
+      final String originalLanguage;
+      final String originalTitle;
+      final String overview;
+      final double popularity;
+      final String posterPath;
+      final DateTime releaseDate;
+      final String title;
+      final bool video;
+      final double voteAverage;
+      final int voteCount;
+
+      Movie({
+        required this.adult,
+        required this.backdropPath,
+        required this.genreIds,
+        required this.id,
+        required this.originalLanguage,
+        required this.originalTitle,
+        required this.overview,
+        required this.popularity,
+        required this.posterPath,
+        required this.releaseDate,
+        required this.title,
+        required this.video,
+        required this.voteAverage,
+        required this.voteCount
+      });
+    }
+
+
+
+Paso 11 ) Ahora crearemos nuestra clase abstracta, para no tener que instanciarla /lib/domain/datasources/movies_datasoruce.dart
+
+
+        import 'package:pelis_api/domain/entities/movie.dart';
+        abstract class MovieDatasource {
+          Future<List<Movie>> getNowPlaying({int page = 1});
+        }
+
+Paso 12 ) Ahora crearemos /lib/domain/repositories/movies_repository.dart
+
+        import 'package:pelis_api/domain/entities/movie.dart';
+        abstract class MovieRepository {
+          Future<List<Movie>> getNowPlaying({int page = 1});
+        }
+
+
+
+Paso 13 )
+
+https://www.themoviedb.org/
+danielrico
+123456
+
+
+eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmYzVkNDM2MWU2MGU0NGYzMDY5YTE4MTVmZGFjNDkxOCIsIm5iZiI6MTc1OTg1MzY0Ny4zNzEsInN1YiI6IjY4ZTUzYzRmMTUxOTM1OGFjNjI1YzBlMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.JSmF39jKicNyMyQ8LvVkh0T-qy-1Pgl1l0vfiGx_b9g
+
+fc5d4361e60e44f3069a1815fdac4918
+
+Paso 14)
+
+creamos en la raiz el archivo .env y .env.template
+
+
+THE_MOVIEDB_KEY=fc5d4361e60e44f3069a1815fdac4918
+
+
+
+Paso 15)
+
+    hay q iniciar el github
+
+    y revisar que este el .env, el git ignore
+
+    Agregamos al readme los pasos a seguir
+
+
+
+
