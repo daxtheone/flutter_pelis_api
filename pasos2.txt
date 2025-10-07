@@ -158,12 +158,12 @@ fc5d4361e60e44f3069a1815fdac4918
 
 Paso 14)
 
-creamos en la raiz el archivo .env y .env.template
+    creamos en la raiz el archivo .env y .env.template
 
 
-THE_MOVIEDB_KEY=fc5d4361e60e44f3069a1815fdac4918
+    THE_MOVIEDB_KEY=fc5d4361e60e44f3069a1815fdac4918
 
-
+    test en postman  https://api.themoviedb.org/3/movie/550?api_key=fc5d4361e60e44f3069a1815fdac4918&language=es-MX
 
 Paso 15)
 
@@ -174,5 +174,47 @@ Paso 15)
     Agregamos al readme los pasos a seguir
 
 
+Paso 16)
+   16.1)
+   instalaremos el paquete flutter_dotenv: ^6.0.0
 
+   16.2)
+   recordar habilitar el
+
+flutter:
+  uses-material-design: true
+  assets:
+   - .env
+
+   16.3)
+   Luego vamos al main.dart
+
+    import 'package:flutter_dotenv/flutter_dotenv.dart';
+    Future<void> main() async{
+      await dotenv.load(fileName: '.env');
+      runApp(const MyApp());
+    }
+
+    16.4)
+    probamos  en presentation/screens/home_screen.dart
+
+        import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+        class HomeScreen extends StatelessWidget {
+          static const name = 'home-screen';
+
+          const HomeScreen({super.key});
+
+          @override
+          Widget build(BuildContext context) {
+            return Scaffold(
+              body: Center(
+                child: Text(dotenv.env['THE_MOVIEDB_KEY']?? 'No hay api KEY'),
+              ),
+            );
+          }
+        }
+
+    16.5)
+    Creamos el directorio config/constants/enviroment.dart
 
