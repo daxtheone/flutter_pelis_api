@@ -132,14 +132,14 @@ Paso 11 ) Ahora crearemos nuestra clase abstracta, para no tener que instanciarl
 
 
         import 'package:pelis_api/domain/entities/movie.dart';
-        abstract class MovieDatasource {
+        abstract class MoviesDatasource {
           Future<List<Movie>> getNowPlaying({int page = 1});
         }
 
 Paso 12 ) Ahora crearemos /lib/domain/repositories/movies_repository.dart
 
         import 'package:pelis_api/domain/entities/movie.dart';
-        abstract class MovieRepository {
+        abstract class MoviesRepository {
           Future<List<Movie>> getNowPlaying({int page = 1});
         }
 
@@ -242,3 +242,179 @@ flutter:
             );
           }
         }
+
+17 ) Creamos el directorio infrastructure/datasources/moviedb_datasource.dart para instanciar la clase abstracta del /datasource
+
+
+    instalamos le paquete DIO similar a AXIOS
+    https://pub.dev/packages/dio/install
+
+
+        class MoviedbDatasource extends MoviesDatasource {
+
+          final dio = Dio(BaseOptions(
+            baseUrl: 'https://api.themoviedb.org/3',
+            queryParameters: {
+              'api_key': Enviroment.theMovieDbKey,
+              'language': 'es-MX'
+            }
+          ));
+
+          @override
+          Future<List<Movie>> getNowPlaying({int page = 1}) async{
+            final response = await dio.get('/movie/now_playing');
+            final List<Movie> movies = [];
+            return [];
+          }
+
+
+        }
+
+18 ) ahora vmaos a crear nuestro conversor de lo que trae el json a lo que usaremos en nuestra app
+     vamos a https://app.quicktype.io/ y pegamos el json que nos responde en el postman nuestra api
+        https://api.themoviedb.org/3/movie/550?api_key=fc5d4361e60e44f3069a1815fdac4918&language=es-MX
+        configuramos DART, null Safety y Make All propertis final y copiamos el mapeo
+
+
+
+
+
+
+19 )  Creamos el directorio /infrastructure/models/moviedb/moviedb_response.dart
+
+    y aqui pegamos el mapeo de la pagina https://app.quicktype.io/   y comenzamos a arreglarlo para que quede funcional
+
+
+
+
+19.1 )
+    final Dates? dates; la ponemos opcional
+    "dates": dates == null ? null : dates!.toJson(),
+
+19.2 ) Renombramos la clase response por MovieMovieDB
+
+       copiamos la clase y la pasamos a movie_moviedb.dart
+
+19.3 )  eliminamos la enum, no lo usaremos
+
+19.4 ) https://image.tmdb.org/t/p/original/
+
+
+20 ) CReamos nuestro directorio infrastructure/mappers
+
+21 ) Luego de crear nuestro mapper, nos vamos a moviedb_datasrource a culminar nuestra peticion get
+
+22 ) Ahora vamos a crear nuestro folder infrastructure/repositories/movie_repository_impl.dart
+
+
+
+
+23 )  instalamos riverpod
+    https://pub.dev/packages/flutter_riverpod/install
+    flutter_riverpod: ^3.0.3
+
+    23.1 ) configuramos el main
+        Future<void> main() async{
+          await dotenv.load(fileName: '.env');
+          runApp( const ProviderScope(child: MyApp()) );
+        }
+
+24 ) creamos el folder presentation/providers/movies/movies_repository_provider.dart
+
+        // este repositorio es inmutable es de solo lectura, es decir listados
+        final movieRepositoryProvider = Provider((ref) {
+            return MoviesRepositoryImpl(MoviedbDatasource());
+        });
+
+25 ) Creamos el archivo presentation/providers/movies/movies_providers.dart
+
+
+
+
+        final nowPlayingMoviesProvider = StateNotifierProvider<MoviesNotifier, List<Movie>>((ref){
+          final fetchMoreMovies = ref.watch(movieRepositoryProvider).getNowPlaying;
+          return MoviesNotifier(
+            fetchMoreMovies: fetchMoreMovies
+          );
+        });
+
+
+        typedef MovieCallback = Future<List<Movie>> Function({int page});
+
+
+        class MoviesNotifier extends StateNotifier<List<Movie>>{
+          int currentPage = 0;
+          MovieCallback fetchMoreMovies;
+
+          MoviesNotifier({
+            required this.fetchMoreMovies
+          }): super([]);
+          Future<void> loadNextPage() async {
+            currentPage++;
+            final List<Movie> movies = await fetchMoreMovies(page: currentPage);
+            state = [...state, ...movies];
+          }
+        }
+
+
+  26 ) Creamos un archivo de llamados multiples para export en /presentation/providers/providers.dart
+
+
+        export 'movies/movies_providers.dart';
+        export 'movies/movies_repository_provider.dart';
+
+27 ) nos vamos al home_screen para agregar nuestra implementacion GET
+
+    extraigo a un nuevo wigets y convierto el statfull  a ConsumerStatefulWidget
+
+
+        class HomeScreen extends StatelessWidget {
+          static const name = 'home-screen';
+
+          const HomeScreen({super.key});
+
+          @override
+          Widget build(BuildContext context) {
+            return Scaffold(
+              body: Center(
+                child: _HomeView(),
+              ),
+            );
+          }
+        }
+
+
+        class _HomeView extends ConsumerStatefulWidget {
+          const _HomeView();
+
+          @override
+          _HomeViewState createState() => _HomeViewState();
+        }
+
+        class _HomeViewState extends ConsumerState<_HomeView> {
+          @override
+          void initState() {
+            super.initState();
+            ref.read(nowPlayingMoviesProvider.notifier).loadNextPage();
+          }
+
+          @override
+          Widget build(BuildContext context) {
+            final nowPlayingMovies = ref.watch(nowPlayingMoviesProvider);
+
+            if(nowPlayingMovies.length == 0) return CircularProgressIndicator();
+
+            return ListView.builder(itemCount:nowPlayingMovies.length, itemBuilder: (context, index){
+              final movie = nowPlayingMovies[index];
+              return ListTile(
+                title: Text(movie.title)
+              );
+            });
+          }
+        }
+
+
+
+
+
+
