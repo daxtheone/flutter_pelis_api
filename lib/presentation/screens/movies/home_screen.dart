@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pelis_api/presentation/providers/movies/movies_providers.dart';
+import 'package:pelis_api/presentation/widgets/widgets.dart';
+
+import '../../providers/providers.dart';
+
 
 class HomeScreen extends StatelessWidget {
   static const name = 'home-screen';
@@ -13,6 +16,7 @@ class HomeScreen extends StatelessWidget {
       body: Center(
         child: _HomeView(),
       ),
+      bottomNavigationBar: CustomBottomNavigatorbar()
     );
   }
 }
@@ -34,15 +38,23 @@ class _HomeViewState extends ConsumerState<_HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    final nowPlayingMovies = ref.watch(nowPlayingMoviesProvider);
+    /* final nowPlayingMovies = ref.watch(nowPlayingMoviesProvider); */
+    final moviesSlideshow = ref.watch(moviesSlideshowProvider);
+    if(moviesSlideshow.length == 0) return CircularProgressIndicator();
 
-    if(nowPlayingMovies.length == 0) return CircularProgressIndicator();
-
-    return ListView.builder(itemCount:nowPlayingMovies.length, itemBuilder: (context, index){
-      final movie = nowPlayingMovies[index];
-      return ListTile(
-        title: Text(movie.title)
-      );
-    });
+    return Column(
+      children: [
+        CustomAppbar(),
+        MoviesSlideshow(movies: moviesSlideshow),
+        /*Expanded(
+          child: ListView.builder(itemCount:nowPlayingMovies.length, itemBuilder: (context, index){
+            final movie = nowPlayingMovies[index];
+            return ListTile(
+                title: Text(movie.title)
+            );
+          }),
+        )*/
+      ],
+    );
   }
 }

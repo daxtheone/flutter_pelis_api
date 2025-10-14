@@ -1,0 +1,245 @@
+
+//*********** CON ESTOS PASOS CREAREMOS EL APP BAR CUSTOMIZADO  ***************//
+
+1 ) Dentro de presentation creamos el directorio llamado presentation/widgets/shared/custom_appbar.dart
+
+
+    y luego creamos nuestro stl
+    class CustomAppbar extends StatelessWidget {
+      const CustomAppbar({super.key});
+
+      @override
+      Widget build(BuildContext context) {
+        return const Placeholder();
+      }
+    }
+
+2 ) Creamos el archivo presentation/widgets/widgets.dart para tener un solo export de todos nuestros widgets personalizados
+
+export 'shared/custom_appbar.dart';
+
+
+3) y nos vamos a modificar nuestro home screem para incluir el widgets llamado custom_appbar
+
+
+    return Column(
+      children: [
+        CustomAppbar(),
+        Expanded(
+          child: ListView.builder(itemCount:nowPlayingMovies.length, itemBuilder: (context, index){
+            final movie = nowPlayingMovies[index];
+            return ListTile(
+                title: Text(movie.title)
+            );
+          }),
+        )
+      ],
+    );
+
+
+4 ) ahora Creamos nuestro custom appbar
+
+
+    final colors = Theme.of(context).colorScheme;
+    final titleStyle = Theme.of(context).textTheme.titleMedium;
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: SizedBox(
+          width: double.infinity,
+          child: Row(
+            children: [
+              Icon(Icons.movie_outlined, color: colors.primary),
+              SizedBox(width: 5),
+              Text('Cinemapedia', style: titleStyle,),
+              Spacer(),
+              IconButton(onPressed: (){}, icon: Icon(Icons.search))
+            ],
+          ),
+        ),
+      ),
+    );
+
+
+
+//*********** CON ESTOS PASOS CREAREMOS EL CARROUSEL CARD SWIPER  ***************//
+
+
+
+1 )  https://pub.dev/packages/card_swiper/install
+
+2 ) creamos widgets/movies/movies_slideshow.dart
+
+
+    class MoviesSlideshow extends StatelessWidget {
+      final List<Movie> movies;
+      const MoviesSlideshow({super.key, required this.movies});
+
+      @override
+      Widget build(BuildContext context) {
+        return const Placeholder();
+      }
+    }
+
+
+3) Agregamos el export en presentation/widgets/widgets.dart
+
+    export 'movies/movies_slideshow.dart';
+
+4 ) Lo agregamos en nuestro home_screen
+
+    return Column(
+      children: [
+        CustomAppbar(),
+        MoviesSlideshow(movies: nowPlayingMovies),
+      ],
+    );
+
+5 )  incluimos el widget Swipe en movies_slideshow.dart
+
+        class MoviesSlideshow extends StatelessWidget {
+          final List<Movie> movies;
+          const MoviesSlideshow({super.key, required this.movies});
+
+          @override
+          Widget build(BuildContext context) {
+            return SizedBox(
+              height: 210,
+              width: double.infinity,
+              child: Swiper(
+                viewportFraction: 0.8,
+                scale: 0.9,
+                autoplay: true,
+                itemCount: movies.length,
+                itemBuilder: (context, index) => _Slide(movie: movies[index])
+                ,
+              ),
+            );
+          }
+        }
+
+        class _Slide extends StatelessWidget {
+          final Movie movie;
+          const _Slide({required this.movie});
+
+          @override
+          Widget build(BuildContext context) {
+            return const Placeholder();
+          }
+        }
+
+6 ) instalamos nuestro animated_do
+
+    https://pub.dev/packages/animate_do/install
+
+7 )   Mejoramos unestro Slide
+
+        class MoviesSlideshow extends StatelessWidget {
+          final List<Movie> movies;
+          const MoviesSlideshow({super.key, required this.movies});
+
+          @override
+          Widget build(BuildContext context) {
+            return SizedBox(
+              height: 210,
+              width: double.infinity,
+              child: Swiper(
+                viewportFraction: 0.8,
+                scale: 0.9,
+                autoplay: true,
+                itemCount: movies.length,
+                itemBuilder: (context, index) => _Slide(movie: movies[index]),
+              ),
+            );
+          }
+        }
+
+        class _Slide extends StatelessWidget {
+          final Movie movie;
+          const _Slide({required this.movie});
+
+          @override
+          Widget build(BuildContext context) {
+            final decoration = BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 10)),
+              ],
+            );
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 30),
+              child: DecoratedBox(
+                decoration: decoration,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.network(
+                    movie.backdropPath,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress){
+                      if(loadingProgress != null){
+                        return const DecoratedBox(decoration: BoxDecoration(color: Colors.black12));
+                      }
+                        return FadeIn(child:child);
+                    }
+                  ),
+                ),
+              ),
+            );
+          }
+        }
+
+
+
+8 ) Actualizo mi providers.dart para exportar uno nuevo
+     export 'movies/movies_slideshow_provider.dart';
+
+
+    final moviesSlideshowProvider = Provider<List<Movie>>((ref){
+        final nowPlayingMovies = ref.watch(nowPlayingMoviesProvider);
+        if(nowPlayingMovies.isEmpty) return [];
+        return nowPlayingMovies.sublist(0,6);
+    });
+
+9 ) finalmente sustituimos
+
+        en el home_screen
+
+        class _HomeViewState extends ConsumerState<_HomeView> {
+          @override
+          void initState() {
+            super.initState();
+            ref.read(nowPlayingMoviesProvider.notifier).loadNextPage();
+          }
+
+          @override
+          Widget build(BuildContext context) {
+            /* final nowPlayingMovies = ref.watch(nowPlayingMoviesProvider); */
+            final moviesSlideshow = ref.watch(moviesSlideshowProvider);
+            if(moviesSlideshow.length == 0) return CircularProgressIndicator();
+
+            return Column(
+              children: [
+                CustomAppbar(),
+                MoviesSlideshow(movies: moviesSlideshow),
+                /*Expanded(
+                  child: ListView.builder(itemCount:nowPlayingMovies.length, itemBuilder: (context, index){
+                    final movie = nowPlayingMovies[index];
+                    return ListTile(
+                        title: Text(movie.title)
+                    );
+                  }),
+                )*/
+              ],
+            );
+          }
+        }
+
+
+
+//*********** CON ESTOS PASOS CREAREMOS EL BOTTOM NAVIGATION BAR ***************//
+
+
+1 ) en /presentatation/widgets/shared/custom_bottom_navigatorbar.dart
+2 ) lo exportamos en mi archivo de widgets.dart
+3 )
