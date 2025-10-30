@@ -241,5 +241,6 @@ export 'shared/custom_appbar.dart';
 
 
 1 ) en /presentatation/widgets/shared/custom_bottom_navigatorbar.dart
-2 ) lo exportamos en mi archivo de widgets.dart
-3 )
+2) creamos tambien movies/movie_horizontal_listview.dart
+3 ) los exportamos en mi archivo de barril  widgets.dart
+4)

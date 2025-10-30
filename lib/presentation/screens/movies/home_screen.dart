@@ -38,7 +38,7 @@ class _HomeViewState extends ConsumerState<_HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    /* final nowPlayingMovies = ref.watch(nowPlayingMoviesProvider); */
+    final nowPlayingMovies = ref.watch(nowPlayingMoviesProvider);
     final moviesSlideshow = ref.watch(moviesSlideshowProvider);
     if(moviesSlideshow.length == 0) return CircularProgressIndicator();
 
@@ -46,6 +46,7 @@ class _HomeViewState extends ConsumerState<_HomeView> {
       children: [
         CustomAppbar(),
         MoviesSlideshow(movies: moviesSlideshow),
+        MovieHorizontalListview(movies: nowPlayingMovies, title: 'En cine', subTitle: 'Lunes 20')
         /*Expanded(
           child: ListView.builder(itemCount:nowPlayingMovies.length, itemBuilder: (context, index){
             final movie = nowPlayingMovies[index];
