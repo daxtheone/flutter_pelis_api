@@ -243,4 +243,285 @@ export 'shared/custom_appbar.dart';
 1 ) en /presentatation/widgets/shared/custom_bottom_navigatorbar.dart
 2) creamos tambien movies/movie_horizontal_listview.dart
 3 ) los exportamos en mi archivo de barril  widgets.dart
-4)
+4) En nuestro home_screen.dart agregamos nuestro nuevo widget
+
+
+    return Column(
+          children: [
+            CustomAppbar(),
+            MoviesSlideshow(movies: moviesSlideshow),
+            MovieHorizontalListview(movies: nowPlayingMovies, title: 'En cine', subTitle: 'Lunes 20')
+            /*Expanded(
+              child: ListView.builder(itemCount:nowPlayingMovies.length, itemBuilder: (context, index){
+                final movie = nowPlayingMovies[index];
+                return ListTile(
+                    title: Text(movie.title)
+                );
+              }),
+            )*/
+          ],
+        );
+
+
+    5 )  ahora crearemos la transformacion de 88.212 a 88K  usando un paquete intl
+
+         https://pub.dev/packages/intl
+
+            5.1) /lib/config/helpers/human_formats.dart
+
+            import 'package:intl/intl.dart';
+
+                class HumanFormats {
+                  static String number(double number){
+
+                    final formattedNumber = NumberFormat.compactCurrency(
+                      decimalDigits: 0,
+                      symbol: '',
+                      // locale: 'en'
+                    ).format(number);
+
+                    return formattedNumber;
+                  }
+                }
+
+            5.2)  quedando asi el arhivo movie_horizontal_listview
+
+
+                import 'package:animate_do/animate_do.dart';
+                import 'package:flutter/material.dart';
+                import 'package:pelis_api/config/helpers/human_formats.dart';
+                import 'package:pelis_api/domain/entities/movie.dart';
+
+                class MovieHorizontalListview extends StatelessWidget {
+                  final List<Movie> movies;
+                  final String? title;
+                  final String? subTitle;
+                  final VoidCallback? loadNextPage;
+
+                  const MovieHorizontalListview({
+                    super.key,
+                    required this.movies,
+                    this.title,
+                    this.subTitle,
+                    this.loadNextPage
+                  });
+
+                  @override
+                  Widget build(BuildContext context) {
+                    return SizedBox(height: 350, child: Column(
+                      children: [
+                        if ( title != null && subTitle != null ) _Title(title: title,subTitle: subTitle,),
+                        Expanded(child: ListView.builder(itemCount: movies.length, scrollDirection: Axis.horizontal, physics: BouncingScrollPhysics(),itemBuilder: (context, index){
+                          return _Slide(movie: movies[index]);
+                        }))
+                      ],
+                    ),);
+                  }
+                }
+
+                class _Slide extends StatelessWidget {
+                  final Movie movie;
+                  const _Slide({required this.movie});
+
+                  @override
+                  Widget build(BuildContext context) {
+                    final textStyles = Theme.of(context).textTheme;
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start, // para que todos sus hijos queden alineados a la derecha
+                        children: [
+                          SizedBox(
+                            width: 150,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Image.network(
+                                movie.posterPath,
+                                fit: BoxFit.cover,
+                                width: 150,
+                                loadingBuilder: (context, child, loadingProgress){
+                                if(loadingProgress != null){
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Center(child: const CircularProgressIndicator(strokeWidth: 2)),
+                                  );
+                                }
+                                return FadeInRight(child: child);
+                                },
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 5,),
+                          SizedBox(
+                            width: 150,
+                            child: Text(
+                              movie.title,
+                              maxLines: 2,
+                              style: textStyles.titleSmall,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 150,
+                            child: Row(
+                              children: [
+                                Icon(Icons.star_half_outlined, color: Colors.amber,),
+                                SizedBox(width: 3,),
+                                Text('${ movie.voteAverage}', style: textStyles.bodyMedium?.copyWith(color: Colors.yellow),),
+                                SizedBox(width: 10,),
+                                Spacer(),
+                                Text(HumanFormats.number(movie.popularity), style:  textStyles.bodySmall,),
+                                // Text('${movie.popularity}', style: textStyles.bodySmall,)
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    );
+                  }
+                }
+
+                class _Title extends StatelessWidget {
+                  final String? title;
+                  final String? subTitle;
+                  const _Title({this.title, this.subTitle});
+
+                  @override
+                  Widget build(BuildContext context) {
+                    final titleStyle = Theme.of(context).textTheme.titleLarge;
+                    return Container(
+                      padding: const EdgeInsets.only(top:10),
+                      margin: const EdgeInsets.symmetric(horizontal: 10 ),
+                      child: Row(
+                        children: [
+                          if(title!=null) Text(title!, style: titleStyle,),
+                          const Spacer(), // para que separe tdoooo
+                          if(subTitle!=null) FilledButton.tonal(style: const ButtonStyle(visualDensity: VisualDensity.compact),onPressed: (){}, child: Text(subTitle!)),
+                        ]
+                      )
+                    );
+                  }
+                }
+
+
+
+
+ 6) luego haremos el scrool infitino, para lograrlo necesitos pasar de sateless y stafull
+
+
+
+    6.1 ) cambiamos a satefull
+    6.2 ) creamos la variable   final scrollController = ScrollController();
+    6.3 ) creamos la funcion initState()
+    6.4 ) siempreee debemos crear la funcion dispose()
+    6.5 ) asocialis el scrollo controller al listView.builder
+    6.6 ) comenzamos a desarrllar nuestro initState
+
+
+            void initState() {
+                // TODO: implement initState
+                super.initState();
+                scrollController.addListener((){
+                  if(widget.loadNextPage == null) return;
+
+                  if( (scrollController.position.pixels + 200) >= scrollController.position.maxScrollExtent ){
+                    print('Load next movies');
+                    widget.loadNextPage!();
+                  }
+
+                });
+              }
+    6.7) comenzamos ahora a desarrollar en el home_screen nuestro funcion de paginas siguiente
+
+
+        lib/presentation/providers/movies/movies_providers.dart
+                class MoviesNotifier extends StateNotifier<List<Movie>>{
+                  int currentPage = 0;
+                  bool isLoading = false;
+                  MovieCallback fetchMoreMovies;
+
+                  MoviesNotifier({
+                    required this.fetchMoreMovies
+                  }): super([]);
+
+                  Future<void> loadNextPage() async {
+                    if(isLoading) return;
+                    isLoading = true;
+                    currentPage++;
+                    final List<Movie> movies = await fetchMoreMovies(page: currentPage);
+                    state = [...state, ...movies];
+                    await Future.delayed(const Duration(milliseconds: 300));
+                    isLoading = false;
+                  }
+        }
+
+
+    6.8) home_screen lo mejoramos envolviendolo en un SingleChildScrollView para evitar desbordamientos
+
+
+    6.9 ) finalmente mejoramos con el CustomScrollView para tener un mejor control de la pagina y el floar menu
+
+    return CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              floating: true,
+              flexibleSpace: FlexibleSpaceBar(
+                title: CustomAppbar(),
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                return Column(
+                  children: [
+                    // CustomAppbar(),
+                    MoviesSlideshow(movies: moviesSlideshow),
+                    MovieHorizontalListview(
+                      movies: nowPlayingMovies,
+                      title: 'En cine',
+                      subTitle: 'Lunes 20',
+                      loadNextPage: () => ref
+                          .read(nowPlayingMoviesProvider.notifier)
+                          .loadNextPage(),
+                    ),
+                    MovieHorizontalListview(
+                      movies: nowPlayingMovies,
+                      title: 'Próximamente',
+                      subTitle: 'En este mes',
+                      loadNextPage: () => ref
+                          .read(nowPlayingMoviesProvider.notifier)
+                          .loadNextPage(),
+                    ),
+                    MovieHorizontalListview(
+                      movies: nowPlayingMovies,
+                      title: 'Populares',
+                      //subTitle: 'Lunes 20',
+                      loadNextPage: () => ref
+                          .read(nowPlayingMoviesProvider.notifier)
+                          .loadNextPage(),
+                    ),
+                    MovieHorizontalListview(
+                      movies: nowPlayingMovies,
+                      title: 'Mejor Calificada',
+                      subTitle: 'De siempre',
+                      loadNextPage: () => ref
+                          .read(nowPlayingMoviesProvider.notifier)
+                          .loadNextPage(),
+                    ),
+                    SizedBox(height: 50),
+                    /*Expanded(
+                child: ListView.builder(itemCount:nowPlayingMovies.length, itemBuilder: (context, index){
+                  final movie = nowPlayingMovies[index];
+                  return ListTile(
+                      title: Text(movie.title)
+                  );
+                }),
+              )*/
+                  ],
+                );
+              }, childCount: 1),
+            ),
+          ],
+        );
+
+
+
+
