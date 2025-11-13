@@ -524,4 +524,19 @@ export 'shared/custom_appbar.dart';
 
 
 
+7) Ahora vamos a mostrar las diferentes peliculas
+
+
+    7.1 ) Agregamos en domain/datasources   y en domarin/repositories
+
+      Future<List<Movie>> getPopular({int page = 1});
+
+
+    etc....
+
+
+
+
+
+
 

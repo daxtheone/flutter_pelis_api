@@ -1,0 +1,65 @@
+
+
+
+1) creamos nuestra pagina presentation/screens/movies/movie_screen.dart
+
+        import 'package:flutter/material.dart';
+
+        class MovieScreen extends StatelessWidget {
+          static const name = 'movie-screen';
+          final String movieId;
+
+          const MovieScreen({super.key, required this.movieId});
+
+          @override
+          Widget build(BuildContext context) {
+            return Scaffold(
+              appBar: AppBar(
+                title: Text('MovieID: $movieId'),
+              ),
+            );
+          }
+        }
+
+
+2) exportamos en screens.dart
+3) luego el app_router agregamos la nueva ruta app_router.dart
+
+
+    final appRouter = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          name: HomeScreen.name,
+          builder: (context, state) => HomeScreen(),
+          routes: [
+            GoRoute(
+                path: 'movie/:id',
+                name: MovieScreen.name,
+                builder: (context, state) {
+                  final movieId = state.pathParameters['id'] ?? 'no-id';
+                  return  MovieScreen(movieId: movieId,);
+                }
+            ),
+          ]
+        ),
+
+      ],
+    );
+
+
+4) en movie_horizontal_listview.dart en la imagen en el return, agremamos un GestureDetector
+    GestureDetector(
+        onTap: ()=> context.push('/movie/${movie.id}'),
+        child: FadeIn(child: child),
+      );
+
+
+
+  5 )
+
+https://api.themoviedb.org/3/movie/505642?api_key=fc5d4361e60e44f3069a1815fdac4918&language=es-MX copiamos
+y lo llevamos al
+
+  quicktype.io
