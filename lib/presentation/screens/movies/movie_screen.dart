@@ -182,6 +182,13 @@ class _CustomSliverApp extends StatelessWidget {
       backgroundColor: Colors.black,
       expandedHeight: size.height * 0.7,
       foregroundColor: Colors.white,
+      actions: [
+        IconButton(
+          onPressed: () {},
+          // icon: Icon(Icons.favorite_border_outlined),
+          icon: Icon(Icons.favorite, color: Colors.red)
+        ),
+      ],
       shadowColor: Colors.red,
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -207,6 +214,18 @@ class _CustomSliverApp extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
+                    stops: [0.0, 0.3],
+                    colors: [Colors.black87, Colors.transparent],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox.expand(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
                     stops: [0.0, 0.3],
                     colors: [Colors.black87, Colors.transparent],
                   ),
